@@ -1,0 +1,11 @@
+Hydromorphone|Exalgo
+Hydrocodone|Vicodin
+Oxycodone|Oxycontin|Roxicodone|Xtampza|Percocet
+Morphine|Duramorph|Infumorph|Arymo
+Fentanyl|Duragesic|Subsys|Abstral
+Tramadol|Ultram|ConZip
+Buprenorphine|Buprenex|Butrans|Probuphine|Suboxone|Belbuca
+Methadone|Methadose|Diskets|Dolophine
+Oxymorphone|Opana
+Meperidine|Demerol
+

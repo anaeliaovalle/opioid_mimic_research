@@ -43,7 +43,7 @@ Version 0: phaseone_v0.csv
 | dis_found                 | int          | 1 = yes, 0 = no, whether or not patient discharge meds found in chart events                                                            |
 | group                     | int          | ranges between 0-4. Not used. See https://github.com/mghassem/medicationCategories/blob/master/finddrugs.py                             |
 | opiates                   | int          | 1 = yes, 0 = no, whether or not opiates found in patient medications on admission                                                       |
-| <drug name>               | int          | 1 = yes, 0 = no, whether or not particular drug found in patient medications on admission                                               |
+| drug name               | int          | 1 = yes, 0 = no, whether or not particular drug found in patient medications on admission                                               |
 | icu_los_hours             | float        | ICU length of stay in hours                                                                                                             |
 | hospital_intime           | timestamp    | time patient was admitted to hospital                                                                                                   |
 | hospital_outtime          | timestamp    | time patient left hospital                                                                                                              |

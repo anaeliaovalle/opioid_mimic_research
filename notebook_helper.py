@@ -1,12 +1,12 @@
 import pandas as pd
 
 
-def run_query(query, db_connection, check_distinct_events=True):
+def run_query(query, db_connection, check_events=True):
     """Run SQL query using postgres connection"""
     query_schema = 'SET search_path to mimiciii;'
     query = query_schema + query
     df = pd.read_sql_query(query, db_connection)
-    if check_distinct_events:
+    if check_events:
         check_distinct_events(df)
     return df
 

@@ -8,4 +8,3 @@ Buprenorphine|Buprenex|Butrans|Probuphine|Suboxone|Belbuca
 Methadone|Methadose|Diskets|Dolophine
 Oxymorphone|Opana
 Meperidine|Demerol
-

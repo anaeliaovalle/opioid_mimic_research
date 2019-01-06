@@ -1,0 +1,5 @@
+Hydromorphone|Exalgo
+Hydrocodone|Vicodin
+Oxycodone|Oxycontin|Roxicodone|Xtampza|Percocet
+Morphine|Duramorph|Infumorph|Arymo
+Seroquel|Seroquel

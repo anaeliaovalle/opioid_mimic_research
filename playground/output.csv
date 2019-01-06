@@ -1,4 +1,4 @@
-"ROW_ID","SUBJECT_ID","HADM_ID","HIST_FOUND","OPIATE_HISTORY","ADMIT_FOUND","DIS_FOUND","GEN_OPIATES_FOUND","GROUP","OPIATES","MISC","hydromorphone","hydrocodone","oxycodone","morphine","fentanyl","tramadol","buprenorphine","methadone","oxymorphone","meperidine"
+"ROW_ID","SUBJECT_ID","HADM_ID","HIST_FOUND","DEPRESSION","ADMIT_FOUND","DIS_FOUND","GEN_DEPRESS_MEDS_FOUND","GROUP","SSRI","MISC","hydromorphone","hydrocodone","oxycodone","morphine","fentanyl","tramadol","buprenorphine","methadone","oxymorphone","meperidine"
 2,3,145834,1,0,1,1,0,3,1,0,0,1,0,0,0,0,0,0,0
 3,4,185777,1,0,1,1,0,2,0,0,0,0,0,0,0,0,0,0,0
 5,6,107064,1,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0

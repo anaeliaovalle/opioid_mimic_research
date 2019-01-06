@@ -1,12 +1,13 @@
 import pandas as pd
 
 
-def run_query(query, db_connection):
+def run_query(query, db_connection, check_distinct_events=True):
     """Run SQL query using postgres connection"""
     query_schema = 'SET search_path to mimiciii;'
     query = query_schema + query
     df = pd.read_sql_query(query, db_connection)
-    check_distinct_events(df)
+    if check_distinct_events:
+        check_distinct_events(df)
     return df
 
 
@@ -73,13 +74,31 @@ def get_admit_df(df_sql, df_meds):
     return df_admits
 
 
-def get_length_of_stay_hours(df, col_out, col_in, name):
+def get_time_diff_hours(df, col_out, col_in, name):
     """get length of stay from timeseries column in pandas df"""
     # icu los
     diff_time = df[col_out] - df[col_in]
     diff_time_hrs = diff_time / pd.Timedelta('1h')
     df[name] = diff_time_hrs
     return df
+
+
+def get_mortality_outcome(df_hospital, df_death): # todo: finish cleaning up
+    data_w_first_outcomes = df_hospital.merge(df_death, on=['subject_id'])
+    data_w_first_outcomes = get_time_diff_hours(df=data_w_first_outcomes,
+                                                col_out='dod',
+                                                col_in='hospital_outtime',
+                                                name='death_days_since_hospital')
+    data_w_first_outcomes['30day_mortality'] = data_w_first_outcomes['death_days_since_hospital'] <= 30
+    data_w_first_outcomes['1year_mortality'] = data_w_first_outcomes['death_days_since_hospital'] <= 365
+    data_w_first_outcomes['30day_mortality'] = (data_w_first_outcomes['30day_mortality']).astype(int)
+    data_w_first_outcomes['1year_mortality'] = (data_w_first_outcomes['1year_mortality']).astype(int)
+    return data_w_first_outcomes
+
+
+def get_reason_for_admit(df):
+    """assume icd9 list and list of long titles available in df"""
+    pass
 
 # def extract_comorb # todo
 

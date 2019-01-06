@@ -202,3 +202,13 @@ SELECT subject_id
 FROM admissions
 
 """
+
+death_outcome = """
+SELECT subject_id
+    , gender    
+    , dod
+    , dod_hosp
+    , dod_ssn
+FROM patients
+
+"""

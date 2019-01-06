@@ -1,4 +1,5 @@
 import pandas as pd
+import queries
 
 
 def run_query(query, db_connection, check_events=True):
@@ -71,24 +72,30 @@ def get_admit_df(df_sql, df_meds):
     keys = ['row_id', 'subject_id', 'hadm_id']
     df_join = df_sql.merge(df_meds, on=keys).drop_duplicates('row_id')
     df_admits = df_join.loc[df_join.admit_found == 1]
+    df_admits = df_admits.drop(axis=1, labels=['short_titles', 'category', 'description', 'text'])
     return df_admits
 
 
-def get_time_diff_hours(df, col_out, col_in, name):
+def get_time_diff(df, col_out, col_in, name, days=False):
     """get length of stay from timeseries column in pandas df"""
     # icu los
     diff_time = df[col_out] - df[col_in]
-    diff_time_hrs = diff_time / pd.Timedelta('1h')
-    df[name] = diff_time_hrs
+    diff_time_interval = diff_time / pd.Timedelta('1h')
+    if days:
+        hours_in_day = 24
+        diff_time_interval = diff_time_interval / hours_in_day
+    df[name] = diff_time_interval
     return df
 
 
-def get_mortality_outcome(df_hospital, df_death): # todo: finish cleaning up
+def get_mortality_outcome(df_hospital, con):
+    df_death = run_query(query=queries.death_outcome, db_connection=con, check_events=False)
     data_w_first_outcomes = df_hospital.merge(df_death, on=['subject_id'])
-    data_w_first_outcomes = get_time_diff_hours(df=data_w_first_outcomes,
-                                                col_out='dod',
-                                                col_in='hospital_outtime',
-                                                name='death_days_since_hospital')
+    data_w_first_outcomes = get_time_diff(df=data_w_first_outcomes,
+                                            col_out='dod',
+                                            col_in='hospital_outtime',
+                                            name='death_days_since_hospital',
+                                            days=True)
     data_w_first_outcomes['30day_mortality'] = data_w_first_outcomes['death_days_since_hospital'] <= 30
     data_w_first_outcomes['1year_mortality'] = data_w_first_outcomes['death_days_since_hospital'] <= 365
     data_w_first_outcomes['30day_mortality'] = (data_w_first_outcomes['30day_mortality']).astype(int)
@@ -96,9 +103,29 @@ def get_mortality_outcome(df_hospital, df_death): # todo: finish cleaning up
     return data_w_first_outcomes
 
 
+def get_los_outcome(df, con):
+    # todo: rename col
+    df_joined = get_time_diff(df=df,
+                               col_out='outtime',
+                               col_in='intime',
+                               name='icu_los_hours')
+
+    keys = ['subject_id', 'hadm_id']
+    df_step8 = run_query(query=queries.hospital_outcomes, db_connection=con)
+    df_hospital = df_joined.merge(df_step8, on=keys)
+    df_hospital = get_time_diff(df=df_hospital,
+                                 col_out='hospital_outtime',
+                                 col_in='hospital_intime',
+                                 name='hospital_los_hours')
+
+    return df_hospital
+
+
 def get_reason_for_admit(df):
     """assume icd9 list and list of long titles available in df"""
-    pass
+    df['admit_icd9'] = [x[0] for x in df.icd9_codes]
+    df['admit_long_titles'] = [x[0] for x in df.long_titles]
+    return df
 
 # def extract_comorb # todo
 

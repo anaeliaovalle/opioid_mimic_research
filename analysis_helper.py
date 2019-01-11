@@ -39,17 +39,44 @@ class Data:
 
 
 def descript(series, verbose=True):
+	samples = len(series)
 	mean = np.mean(series)
 	median = np.median(series)
 	std_dev = np.std(series)
 	var = np.var(series)
 
-	descript = """ \t\t\t--- Descriptive Stats --- \n MEAN={mean} MEDIAN={median} STD.DEV={std_dev} VARIANCE={var}\n"""
-	fmt_str = descript.format(mean=mean, median=median, std_dev=std_dev, var=var)
+	descript = "\t\t\t--- Descriptive Stats --- \n N={samples} MEAN={mean} MEDIAN={median} " \
+	           "STD.DEV={std_dev} VARIANCE={var}\n"""
+	fmt_str = descript.format(samples=samples, mean=mean, median=median, std_dev=std_dev, var=var)
 	if verbose:
 		print(fmt_str)
 
 	return mean, median, std_dev, var
+
+
+def pie_chart(data, col):
+	def do_plot(df, ax, group):
+		yes = df[df[col] == 1]
+		no = df[df[col] == 0]
+
+		total_num = len(df)
+		yes_float = float(len(yes)) / float(total_num)
+		no_float = float(len(no)) / float(total_num)
+		yes_num = round(yes_float, 2) * 100
+		no_num = round(no_float, 2) * 100
+
+		sizes = [yes_num, no_num]
+		explode = (0, 0.1)  # only "explode" the 1st slice (i.e. 'yes')
+
+		labels = ['yes_%s' % col, 'no_%s' % col]
+		ax.pie(sizes, explode=explode, labels=labels, autopct='%1.1f%%', shadow=True, startangle=90)
+		ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+		ax.set_title('%s_%s' % (group, col))
+
+	fig, axes = plt.subplots(nrows=1, ncols=2)
+	fig.set_size_inches(13, 5)
+	do_plot(df=data.non_opiates.data, ax=axes[data.non_opiates.axis], group=data.non_opiates.name)
+	do_plot(df=data.opiate.data, ax=axes[data.opiate.axis], group=data.opiate.name)
 
 
 def plot_hist(data, col, ylabel='count'):
@@ -65,6 +92,7 @@ def plot_hist(data, col, ylabel='count'):
 
 	fig, axes = plt.subplots(nrows=1, ncols=2)
 	fig.set_size_inches(13, 5)
+
 	print("\t\t\t*** Info for: %s group ***" % data.non_opiates.name)
 	do_plot(df=data.non_opiates.data, ax=axes[data.non_opiates.axis], group=data.non_opiates.name)
 	print("\t\t\t***Info for: %s group ***" % data.opiate.name)
@@ -95,7 +123,6 @@ def check_p_val(pval, alpha):
 
 
 def do_normality(data, col, alpha=0.05):
-
 	def do_kstest(series):
 		data_mean, _, data_std, _ = descript(series, verbose=False)
 		test_stat = stats.kstest(series, 'norm', args=(data_mean, data_std))

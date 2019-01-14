@@ -16,7 +16,8 @@ This space will be used to host any data related to this project.
 * Patients without opiate meds upon admission: 28,200
 * Steps on how this data was extracted can be found at phase_one_inclusion_exclusion.ipynb
 
-Version 0: phaseone_v0.csv
+Version 0: phaseone_v0.csv. Initial Data.
+Version 1: phaseone_v1.csv. Removal of multiple admissions from 180+ days and mortality within admission.
 
 | Column Name               | Type         | Description                                                                                                                             |
 |---------------------------|--------------|-----------------------------------------------------------------------------------------------------------------------------------------|

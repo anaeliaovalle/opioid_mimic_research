@@ -1,5 +1,6 @@
 import pandas as pd
 import queries
+import numpy as np
 
 
 def run_query(query, db_connection, check_events=True):
@@ -89,7 +90,7 @@ def get_time_diff(df, col_out, col_in, name, days=False):
 
 
 def get_mortality_outcome(df_hospital, con):
-    df_death = run_query(query=queries.death_outcome, db_connection=con, check_events=False)
+    df_death = run_query(query=queries.death_outcome(), db_connection=con, check_events=False)
     data_w_first_outcomes = df_hospital.merge(df_death, on=['subject_id'])
     data_w_first_outcomes = get_time_diff(df=data_w_first_outcomes,
                                             col_out='dod',
@@ -104,14 +105,13 @@ def get_mortality_outcome(df_hospital, con):
 
 
 def get_los_outcome(df, con):
-    # todo: rename col
     df_joined = get_time_diff(df=df,
                                col_out='outtime',
                                col_in='intime',
                                name='icu_los_hours')
 
     keys = ['subject_id', 'hadm_id']
-    df_step8 = run_query(query=queries.hospital_outcomes, db_connection=con)
+    df_step8 = run_query(query=queries.hospital_outcomes(), db_connection=con)
     df_hospital = df_joined.merge(df_step8, on=keys)
     df_hospital = get_time_diff(df=df_hospital,
                                  col_out='hospital_outtime',
@@ -127,5 +127,53 @@ def get_reason_for_admit(df):
     df['admit_long_titles'] = [x[0] for x in df.long_titles]
     return df
 
-# def extract_comorb # todo
+
+def remove_skew_data(df):
+    def find_mortalities(df):
+        print("finding mortalities...")
+        icu_death_lower = (df.dod >= df.intime)
+        icu_death_upper = (df.dod <= df.outtime)
+        icu_death_filter = icu_death_lower & icu_death_upper
+        icu_death_col = np.where(icu_death_filter, 1, 0)
+        df['icu_death'] = icu_death_col
+
+        hos_death_lower = (df.dod >= df.hospital_intime)
+        hos_death_upper = (df.dod <= df.hospital_outtime)
+        hos_death_filter = hos_death_lower & hos_death_upper
+        hos_death_col = np.where(hos_death_filter, 1, 0)
+        df['hos_death'] = hos_death_col
+        return df
+
+    def remove_multiple_admits(df):
+        filter_method = pd.isnull(df.diff_last_outtime)
+        return df[filter_method]
+
+    def extract_los_days(df, hours):
+        print("adding days to primary outcomes...")
+        df['icu_los_days'] = df['icu_los_hours'] / hours
+        df['hospital_los_days'] = df['hospital_los_hours'] / hours
+        return df
+
+    def remove_mortalities(df):
+        df_mort = find_mortalities(df)
+        return df_mort[df_mort.hos_death == 0]
+
+    hours_in_days = 24.0
+    expected_count = 26657
+    df_no_multiple_admits = remove_multiple_admits(df=df)
+    df_with_days = extract_los_days(df=df_no_multiple_admits, hours=hours_in_days)
+    df_no_mort = remove_mortalities(df=df_with_days)
+    cnt_df = len(df_no_mort)
+    assert cnt_df == expected_count, "clean count=%d is not same as expected count=%d" % (cnt_df, expected_count)
+    return df_no_mort
+
+
+def extract_comorbs(df, con):
+    """merge current df with new columns that identify comorbs"""
+    df_comorbs = run_query(queries.comobordities(), con, False)
+    key = df_comorbs.icd9_code == df.admit_icd9
+    df_join = df.merge(df_comorbs, on=key)
+
+
+
 

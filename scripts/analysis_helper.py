@@ -9,7 +9,6 @@ from statsmodels.graphics.gofplots import qqplot
 class Data:
 	def __init__(self, pth):
 		self.__raw_df = self.__load_data(pth)
-		self.__clean_df = self.__clean_data()
 		self.opiate, self.non_opiates = self.split_and_adjust_data()
 
 	def __load_data(self, pth):
@@ -17,32 +16,11 @@ class Data:
 		df = pd.read_csv(pth, index_col=default_idx)
 		return df
 
-	def __clean_data(self):
-		def remove_multiple_admits(df):
-			filter_method = pd.isnull(df.diff_last_outtime)
-			return df[filter_method]
-
-		def extract_los_days(df, hours):
-			print("adding days to primary outcomes...")
-			df['icu_los_days'] = df['icu_los_hours'] / hours
-			df['hospital_los_days'] = df['hospital_los_hours'] / hours
-			return df
-
-		def remove_mortalities(df):
-			df_mort = find_mortalities(df)
-			return df_mort[df_mort.hos_death == 0]
-
-		hours_in_days = 24.0
-		df_no_multiple_admits = remove_multiple_admits(df=self.__raw_df)
-		df_with_days = extract_los_days(df=df_no_multiple_admits, hours=hours_in_days)
-		df_no_mort = remove_mortalities(df=df_with_days)
-		return df_no_mort
-
 	def split_and_adjust_data(self):
-		print("splitting into opiate/nonopiate samples...")
+		print("splitting into opiate/non-opiate samples...")
 		opiate_col = 'opiates'
 
-		df = self.__clean_df
+		df = self.__raw_df
 		is_opiate = df[opiate_col] == 1
 		is_not_opiate = df[opiate_col] == 0
 		df_opiate = df[is_opiate]
@@ -52,22 +30,6 @@ class Data:
 		group_non_opiate = Group(name='non_opiate', data=df_non_opiate, axis=0)
 		group_opiate = Group(name='opiate', data=df_opiate, axis=1)
 		return group_opiate, group_non_opiate
-
-
-def find_mortalities(df):
-	print("finding mortalities...")
-	icu_death_lower = ((df.dod >= df.intime))
-	icu_death_upper = ((df.dod <= df.outtime))
-	icu_death_filter = icu_death_lower & icu_death_upper
-	icu_death_col = np.where(icu_death_filter, 1, 0)
-	df['icu_death'] = icu_death_col
-
-	hos_death_lower = ((df.dod >= df.hospital_intime))
-	hos_death_upper = ((df.dod <= df.hospital_outtime))
-	hos_death_filter = hos_death_lower & hos_death_upper
-	hos_death_col = np.where(hos_death_filter, 1, 0)
-	df['hos_death'] = hos_death_col
-	return df
 
 
 def descript(series, verbose=True):
